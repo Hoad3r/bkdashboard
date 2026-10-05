@@ -16,7 +16,7 @@ export function App() {
     <Layout style={{ minHeight: '100vh', background: '#fafafa' }}>
       <Layout.Content style={{ maxWidth: 1100, width: '100%', margin: '0 auto', padding: 24 }}>
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
-          <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16 }}>
+          <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
             <div>
               <Typography.Title level={3} style={{ margin: 0 }}>Dashboard</Typography.Title>
               <Typography.Text type="secondary">Visão geral do seu negócio</Typography.Text>

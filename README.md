@@ -14,7 +14,7 @@ npm install
 npm run dev      # API em http://localhost:3001 e frontend em http://localhost:5173
 ```
 
-Abra http://localhost:5173. Os dados são em memória e reiniciam a cada execução; por padrão a API sobe com dados de exemplo (produtos, custos e 5 pedidos). Para iniciar vazio: `SEED_DATA=false npm run dev`.
+Abra http://localhost:5173. Os dados são em memória e reiniciam a cada execução; por padrão a API sobe com dados de exemplo (4 produtos com custo e 45 pedidos, 5 deles de hoje e o resto espalhado pelos últimos 45 dias, relativos à data atual). Para iniciar vazio: `SEED_DATA=false npm run dev`.
 
 Outros comandos: `npm test` (testes do backend), `npm run typecheck`, `npm run build` (frontend).
 

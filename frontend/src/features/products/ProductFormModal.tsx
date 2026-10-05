@@ -34,7 +34,7 @@ export function ProductFormModal({ open, onClose }: ProductFormModalProps) {
       confirmLoading={mutation.isPending}
       onOk={() => form.submit()}
       onCancel={onClose}
-      destroyOnClose
+      destroyOnHidden
     >
       <Form form={form} layout="vertical" onFinish={(values) => mutation.mutate(values)}>
         <Form.Item name="sku" label="SKU" rules={[{ required: true, whitespace: true, message: 'Informe o SKU' }]}>

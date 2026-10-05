@@ -1,37 +1,53 @@
 import { PlusOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
-import { Button, Table } from 'antd';
+import { Button, Table, Typography } from 'antd';
 import { useState } from 'react';
 import { Section } from '../../shared/components/Section';
-import { formatDate } from '../../shared/format';
-import type { ProductDto as Product } from '@dashboardbk/shared';
-import { fetchProducts, productsKey } from './api';
+import { formatCurrency } from '../../shared/format';
+import type { ProductCostDto as ProductCost } from '@dashboardbk/shared';
+import { costsKey, fetchProductCosts } from '../costs/api';
 import { ProductFormModal } from './ProductFormModal';
 
-
+/** Catalog listing; reads product-costs so each row also shows its current cost. */
 export function ProductsSection() {
   const [creating, setCreating] = useState(false);
-  const { data = [], isLoading } = useQuery({ queryKey: productsKey, queryFn: fetchProducts });
+  const { data = [], isLoading } = useQuery({ queryKey: costsKey, queryFn: fetchProductCosts });
 
   return (
     <Section
       title="Produtos"
+      subtitle={`${data.length} ${data.length === 1 ? 'produto cadastrado' : 'produtos cadastrados'}`}
       extra={
         <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreating(true)}>
           Novo
         </Button>
       }
     >
-      <Table<Product>
+      <Table<ProductCost>
         size="middle"
-        rowKey="id"
+        rowKey={(row) => row.product.id}
         loading={isLoading}
         dataSource={data}
         pagination={{ pageSize: 5, hideOnSinglePage: true }}
         columns={[
-          { title: 'Produto', dataIndex: 'name' },
-          { title: 'SKU', dataIndex: 'sku' },
-          { title: 'Cadastro', dataIndex: 'createdAt', align: 'right', render: formatDate },
+          {
+            title: 'Produto',
+            render: (_, { product }) => (
+              <div>
+                <Typography.Text strong>{product.name}</Typography.Text>
+                <br />
+                <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                  {product.sku}
+                </Typography.Text>
+              </div>
+            ),
+          },
+          {
+            title: 'Custo unitário',
+            align: 'right',
+            render: (_, { cost }) =>
+              cost === null ? <Typography.Text type="secondary">Sem custo</Typography.Text> : formatCurrency(cost),
+          },
         ]}
       />
       <ProductFormModal open={creating} onClose={() => setCreating(false)} />
