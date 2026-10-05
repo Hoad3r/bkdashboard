@@ -72,6 +72,8 @@ Decisões principais:
 - **Open/Closed no webhook:** o formato externo é isolado em `OrderWebhookMapper`. Um novo formato de plataforma é uma nova classe registrada no container, acessível em `/api/webhooks/<plataforma>/orders`, sem alterar o restante.
 - **Valores em centavos** internamente (sem erros de ponto flutuante); a API expõe valores decimais.
 - **Webhook idempotente:** reenvio do mesmo `id` retorna 200 sem duplicar o pedido (novo pedido retorna 201).
+- **Total do pedido conferido:** o webhook é rejeitado com 400 quando `totalAmount` não bate com a soma de `qty × unitPrice` dos itens. A validação do formato fica no mapper; essa regra fica no `OrderService`, porque vale para qualquer plataforma.
+- **Produto desconhecido é aceito:** um `itemId` sem produto cadastrado não bloqueia o pedido (a plataforma é a origem da venda). O item entra com custo zero até que um produto com esse SKU seja cadastrado e receba custo; a partir daí o lucro é recalculado.
 - **Custo calculado no momento da consulta**, usando o custo atual de cada SKU (`itemId` do webhook = `sku` do produto). Cadastrar um custo corrige também o lucro de pedidos já recebidos; itens sem custo contam como zero.
 
 ## Vídeo demonstrativo
