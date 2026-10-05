@@ -1,61 +1,56 @@
-import { Button, DatePicker, Form, Space } from 'antd';
+import { CalendarOutlined } from '@ant-design/icons';
+import { DatePicker, Segmented } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import { useState } from 'react';
 import type { DateRangeFilter } from '../../shared/date-range';
 
 const DATE_FORMAT = 'YYYY-MM-DD';
+const CUSTOM = 'custom';
 
-const presets: { label: string; range: () => [Dayjs, Dayjs] | null }[] = [
-  { label: 'Hoje', range: () => [dayjs(), dayjs()] },
-  { label: '7 dias', range: () => [dayjs().subtract(6, 'day'), dayjs()] },
-  { label: '30 dias', range: () => [dayjs().subtract(29, 'day'), dayjs()] },
-  { label: 'Este mês', range: () => [dayjs().startOf('month'), dayjs()] },
-  { label: 'Tudo', range: () => null },
+type Range = [Dayjs, Dayjs] | null;
+
+const presets: { value: string; label: string; range: () => Range }[] = [
+  { value: 'today', label: 'Hoje', range: () => [dayjs(), dayjs()] },
+  { value: '7d', label: '7 dias', range: () => [dayjs().subtract(6, 'day'), dayjs()] },
+  { value: '30d', label: '30 dias', range: () => [dayjs().subtract(29, 'day'), dayjs()] },
+  { value: 'month', label: 'Este mês', range: () => [dayjs().startOf('month'), dayjs()] },
+  { value: 'all', label: 'Tudo', range: () => null },
 ];
 
 interface DateRangeFormProps {
   onApply: (range: DateRangeFilter) => void;
 }
 
-/** Start/end date filter; every change is applied right away. */
+/** Period filter: quick presets plus a start/end date picker. Every change is applied right away. */
 export function DateRangeForm({ onApply }: DateRangeFormProps) {
-  const [from, setFrom] = useState<Dayjs | null>(null);
-  const [to, setTo] = useState<Dayjs | null>(null);
+  const [preset, setPreset] = useState('all');
+  const [range, setRange] = useState<Range>(null);
 
-  const apply = (nextFrom: Dayjs | null, nextTo: Dayjs | null) => {
-    setFrom(nextFrom);
-    setTo(nextTo);
-    onApply({ from: nextFrom?.format(DATE_FORMAT), to: nextTo?.format(DATE_FORMAT) });
+  const apply = (next: Range, nextPreset: string) => {
+    setRange(next);
+    setPreset(nextPreset);
+    onApply({ from: next?.[0].format(DATE_FORMAT), to: next?.[1].format(DATE_FORMAT) });
   };
 
-  const isActive = (range: [Dayjs, Dayjs] | null) =>
-    range === null ? !from && !to : !!from && !!to && from.isSame(range[0], 'day') && to.isSame(range[1], 'day');
-
   return (
-    <Space direction="vertical" align="end" size={8}>
-      <Space align="end" wrap>
-        <Form.Item label="Data inicial" layout="vertical" style={{ margin: 0 }}>
-          <DatePicker value={from} onChange={(d) => apply(d, to)} format="DD/MM/YYYY" maxDate={to ?? undefined} placeholder="Início" />
-        </Form.Item>
-        <Form.Item label="Data final" layout="vertical" style={{ margin: 0 }}>
-          <DatePicker value={to} onChange={(d) => apply(from, d)} format="DD/MM/YYYY" minDate={from ?? undefined} placeholder="Fim" />
-        </Form.Item>
-      </Space>
-      <Space size={4} wrap>
-        {presets.map(({ label, range }) => {
-          const value = range();
-          return (
-            <Button
-              key={label}
-              size="small"
-              type={isActive(value) ? 'primary' : 'default'}
-              onClick={() => apply(value?.[0] ?? null, value?.[1] ?? null)}
-            >
-              {label}
-            </Button>
-          );
-        })}
-      </Space>
-    </Space>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+      <Segmented
+        value={preset}
+        options={[...presets.map(({ value, label }) => ({ value, label })), ...(preset === CUSTOM ? [{ value: CUSTOM, label: 'Personalizado' }] : [])]}
+        onChange={(value) => {
+          const chosen = presets.find((p) => p.value === value);
+          if (chosen) apply(chosen.range(), chosen.value);
+        }}
+      />
+      <DatePicker.RangePicker
+        value={range}
+        onChange={(dates) => apply(dates?.[0] && dates[1] ? [dates[0], dates[1]] : null, dates ? CUSTOM : 'all')}
+        format="DD/MM/YYYY"
+        placeholder={['Data inicial', 'Data final']}
+        suffixIcon={<CalendarOutlined />}
+        allowEmpty={[false, false]}
+        style={{ width: 260 }}
+      />
+    </div>
   );
 }
