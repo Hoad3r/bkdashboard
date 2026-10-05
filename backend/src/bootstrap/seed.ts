@@ -1,6 +1,6 @@
 import type { Container } from './container';
 
-const DAY_MS = 24 * 60 * 60 * 1000;
+const TODAY_ORDERS = 5;
 
 const catalog = [
   { sku: 'P-001', name: 'Camiseta Básica', cost: 18, price: 49.9 },
@@ -24,7 +24,7 @@ const emailOf = (name: string) =>
   `${name.split(' ')[0].normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()}@email.com`;
 
 /**
- * Demo data: the catalog with costs and ~40 orders spread over the last 45 days,
+ * Demo data: the catalog with costs and ~45 orders: 5 from today and the rest spread over the last 45 days,
  * relative to the current date so period filters have something to show.
  * Disable with SEED_DATA=false.
  */
@@ -38,9 +38,18 @@ export async function seed({ productService, costService, webhookMappers, orderS
   const next = random(42);
   const pick = <T>(list: readonly T[]) => list[Math.floor(next() * list.length)];
 
-  const orders = Array.from({ length: 40 }, () => {
-    const daysAgo = Math.floor(next() * 45);
-    const createdAt = new Date(now.getTime() - daysAgo * DAY_MS - Math.floor(next() * 10) * 60 * 60 * 1000);
+  // The first orders land earlier today, so the "today" filter is never empty.
+  const startOfToday = new Date(now);
+  startOfToday.setHours(0, 0, 0, 0);
+  const minutesSinceMidnight = Math.max(1, Math.floor((now.getTime() - startOfToday.getTime()) / 60_000));
+
+  const orders = Array.from({ length: 45 }, (_, index) => {
+    const minutesAgo =
+      index < TODAY_ORDERS
+        ? Math.floor(next() * minutesSinceMidnight)
+        : Math.floor(next() * 45) * 24 * 60 + Math.floor(next() * 10 * 60);
+    const createdAt = new Date(now.getTime() - minutesAgo * 60_000);
+    createdAt.setSeconds(0, 0);
     const products = [...new Set(Array.from({ length: 1 + Math.floor(next() * 3) }, () => pick(catalog)))];
     const lineItems = products.map((p) => ({ itemId: p.sku, itemName: p.name, qty: 1 + Math.floor(next() * 3), unitPrice: p.price }));
     return { createdAt, buyerName: pick(customers), lineItems };
