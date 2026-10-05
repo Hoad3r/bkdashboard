@@ -19,3 +19,7 @@ export interface Order {
   total: Cents;
   createdAt: Date;
 }
+
+/** Sum of quantity x unit price of every item, in cents. */
+export const itemsTotal = (order: Pick<Order, 'items'>): Cents =>
+  order.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);

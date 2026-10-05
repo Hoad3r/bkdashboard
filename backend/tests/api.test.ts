@@ -68,6 +68,10 @@ describe('API', () => {
     expect(again.body.duplicate).toBe(true);
     await api.post('/api/webhooks/other/orders').send(webhookBody).expect(404);
     await api.post('/api/webhooks/ecommerce/orders').send({}).expect(400);
+    await api
+      .post('/api/webhooks/ecommerce/orders')
+      .send({ ...webhookBody, id: 'ORD-WRONG-TOTAL', totalAmount: 999.99 })
+      .expect(400);
     expect((await api.get('/api/orders')).body).toHaveLength(1);
   });
 
